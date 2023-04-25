@@ -4,16 +4,25 @@ import gg.essential.elementa.impl.dom4j.Document
 import gg.essential.elementa.impl.dom4j.Element
 import gg.essential.elementa.impl.dom4j.io.SAXReader
 import gg.essential.elementa.svg.data.*
+import java.io.InputStream
 import java.lang.UnsupportedOperationException
 
 object SVGParser {
     private val VIEWBOX_WHITESPACE = "[ ,]+".toRegex()
 
-    fun parseFromResource(file: String): SVG {
+    fun parseFromStream(stream: InputStream): SVG {
         val reader = SAXReader()
-        val document = reader.read(this::class.java.getResourceAsStream(file))
+        val document = reader.read(stream)
 
         return parseDocument(document)
+    }
+
+    fun parseFromResource(file: String): SVG {
+        return parseFromStream(this::class.java.getResourceAsStream(file)!!)
+    }
+
+    fun parseFromString(svg: String): SVG {
+        return parseFromStream(svg.byteInputStream())
     }
 
     private fun parseDocument(document: Document): SVG {
@@ -36,7 +45,9 @@ object SVGParser {
                     e.printStackTrace()
                     break@loop
                 }
+
                 "rect" -> listOf(SVGRect.from(element))
+                "polygon" -> listOf(SvgPolygon.from(element))
                 else -> throw UnsupportedOperationException("Element type ${element.name} is not supported!")
             }
 
@@ -69,6 +80,7 @@ object SVGParser {
                         parameters.getOrNull(2)?.toFloatOrNull()
                     )
                 }
+
                 else -> TODO()
             }
 

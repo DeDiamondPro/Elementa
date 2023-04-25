@@ -14,18 +14,13 @@ import gg.essential.elementa.font.DefaultFonts
 import gg.essential.elementa.font.ElementaFonts
 import gg.essential.elementa.utils.withAlpha
 import java.awt.Color
+import java.net.URL
 
 class KtTestGui : WindowScreen(ElementaVersion.V2) {
     private val myTextBox = UIBlock(Color(0, 0, 0, 255))
 
     init {
-        val container = UIContainer().constrain {
-            x = RelativeConstraint(.25f)
-            y = RelativeConstraint(.25f)
-            width = RelativeConstraint(.5f)
-            height = RelativeConstraint(.5f)
-        } childOf window
-        for (i in 50..500) {
+        /*for (i in 50..500) {
             if (i % 15 != 0) continue
             UIBlock(Color.RED).constrain {
                 x = CramSiblingConstraint(10 / 3f)
@@ -33,6 +28,24 @@ class KtTestGui : WindowScreen(ElementaVersion.V2) {
                 width = 5.pixels()
                 height = 5.pixels()
             } childOf container effect OutlineEffect(Color.BLUE, 1f);
-        }
+        }*/
+
+        SVGComponent.ofString("<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polygon points=\"13 2 3 14 12 14 11 22 21 10 12 10 13 2\"/></svg>")
+            .constrain {
+                x = CenterConstraint()
+                y = 50.pixels()
+
+                width = 100.pixels()
+                height = 100.pixels()
+            } childOf window
+
+        SVGComponent.ofURL(URL("https://raw.githubusercontent.com/EssentialGG/Elementa/master/src/main/resources/svg/test.svg"))
+            .constrain {
+                x = CenterConstraint()
+                y = SiblingConstraint()
+
+                width = 100.pixels()
+                height = 100.pixels()
+            } childOf window
     }
 }

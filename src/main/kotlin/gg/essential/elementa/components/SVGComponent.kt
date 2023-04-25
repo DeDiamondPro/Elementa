@@ -11,6 +11,12 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import java.awt.Color
+import java.awt.image.BufferedImage
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URI
+import java.net.URL
+import javax.imageio.ImageIO
 
 /**
  * Component with native SVG rendering for high-res icons.
@@ -134,7 +140,25 @@ class SVGComponent(private var svg: SVG) : UIComponent(), ImageProvider {
     }
 
     companion object {
+        @JvmStatic
         fun ofResource(resourcePath: String): SVGComponent = SVGComponent(SVGParser.parseFromResource(resourcePath))
+        @JvmStatic
+        fun ofString(svg: String): SVGComponent = SVGComponent(SVGParser.parseFromString(svg))
+        @JvmStatic
+        fun ofURL(url: URL): SVGComponent {
+            return SVGComponent(SVGParser.parseFromStream(get(url)))
+        }
+
+        private fun get(url: URL): InputStream {
+            val connection = url.openConnection() as HttpURLConnection
+
+            connection.requestMethod = "GET"
+            connection.useCaches = true
+            connection.addRequestProperty("User-Agent", "Mozilla/4.76 (Elementa)")
+            connection.doOutput = true
+
+            return connection.inputStream
+        }
 
         private data class VBOData(val drawType: Int, val startIndex: Int, val count: Int, val drawPoints: Boolean)
     }
