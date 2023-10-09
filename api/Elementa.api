@@ -3,12 +3,16 @@ public final class gg/essential/elementa/ElementaVersion : java/lang/Enum {
 	public static final field V0 Lgg/essential/elementa/ElementaVersion;
 	public static final field V1 Lgg/essential/elementa/ElementaVersion;
 	public static final field V2 Lgg/essential/elementa/ElementaVersion;
+	public static final field V3 Lgg/essential/elementa/ElementaVersion;
+	public static final field V4 Lgg/essential/elementa/ElementaVersion;
 	public final fun enableFor (Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 	public static fun valueOf (Ljava/lang/String;)Lgg/essential/elementa/ElementaVersion;
 	public static fun values ()[Lgg/essential/elementa/ElementaVersion;
 }
 
 public final class gg/essential/elementa/ElementaVersion$Companion {
+	public final fun getActive ()Lgg/essential/elementa/ElementaVersion;
+	public final fun setActive (Lgg/essential/elementa/ElementaVersion;)V
 }
 
 public abstract class gg/essential/elementa/UIComponent : java/util/Observable, gg/essential/elementa/state/v2/ReferenceHolder {
