@@ -56,16 +56,6 @@ class ConstraintResolutionGui(
             height = 80.percent()
         } childOf window
 
-        SVGComponent.ofResource("/svg/click.svg").constrain {
-            x = 5.pixels(alignOpposite = true)
-            y = 5.pixels
-            width = AspectConstraint(1f)
-            height = 10.pixels
-        }.onMouseClick { event ->
-            event.stopPropagation()
-            guiView.unhide(useLastPosition = false)
-        } childOf window
-
         val titleContent = UIContainer().constrain {
             x = 1.pixel()
             width = 100.percent() - 2.pixels()
@@ -301,16 +291,6 @@ class ConstraintResolutionGui(
                     y = SiblingConstraint(2f)
                 } childOf right
 
-                SVGComponent.ofResource("/svg/click.svg").constrain {
-                    x = 0.pixels
-                    y = SiblingConstraint(3f)
-                    width = AspectConstraint(1f)
-                    height = 10.pixels
-                }.onMouseClick {
-                    guiView.unhide(useLastPosition = false)
-                    guiView.inspector.findAndSelect(node.component)
-                } childOf left
-
             } else {
                 UIText("§7The first entry in this list") childOf right
             }
@@ -374,15 +354,6 @@ class ConstraintResolutionGui(
         } childOf this
 
         val inspector by Inspector(gui) childOf this
-
-        private val closeButton by SVGComponent.ofResource("/svg/close.svg").constrain {
-            x = 2.pixels(alignOpposite = true) boundTo inspector.container
-            y = 2.pixels boundTo inspector.container
-            width = AspectConstraint(1f)
-            height = 10.pixels
-        }.onMouseClick {
-            this@GuiView.hide(instantly = true)
-        } childOf inspector
     }
 
     private class FrozenView(private val component: UIComponent) : UIComponent() {

@@ -82,28 +82,6 @@ class Inspector @JvmOverloads constructor(
             height = 14.pixels()
         } childOf titleBlock
 
-        SVGComponent.ofResource("/svg/click.svg").constrain {
-            x = SiblingConstraint(10f)
-            y = CenterConstraint()
-            width = AspectConstraint(1f)
-            height = RelativeConstraint(1f).to(title) as HeightConstraint
-        }.onMouseClick { event ->
-            event.stopPropagation()
-            isClickSelecting = true
-
-            val rootWindow = Window.of(this)
-            rootWindow.clickInterceptor = { mouseX, mouseY, _ ->
-                rootWindow.clickInterceptor = null
-                isClickSelecting = false
-
-                val targetComponent = getClickSelectTarget(mouseX.toFloat(), mouseY.toFloat())
-                if (targetComponent != null) {
-                    findAndSelect(targetComponent)
-                }
-                true
-            }
-        } childOf titleBlock
-
         separator1 = UIBlock(outlineColor).constrain {
             y = SiblingConstraint()
             height = 2.pixels()

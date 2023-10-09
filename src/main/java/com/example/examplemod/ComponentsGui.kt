@@ -285,15 +285,6 @@ class ComponentsGui : WindowScreen(ElementaVersion.V2) {
             } childOf this
         } childOf window
 
-        ComponentType("SVG") {
-            SVGComponent.ofResource("/svg/test.svg").constrain {
-                x = 2.pixels()
-                y = SiblingConstraint(padding = 2f)
-                width = 50.pixels()
-                height = 50.pixels()
-            } childOf this
-        } childOf window
-
         ComponentType("Gradient") {
             GradientComponent(Color.BLACK, Color.PINK).constrain {
                 x = 2.pixels()

@@ -91,3 +91,23 @@ tasks.jar {
 tasks.named<Jar>("sourcesJar") {
     from(project(":").sourceSets.main.map { it.allSource })
 }
+
+version = "590+markdown"
+
+publishing {
+    repositories {
+
+        maven {
+            name = "diamond"
+
+            url = uri("https://maven.dediamondpro.dev/releases")
+
+            credentials {
+                username = System.getenv("DIAMOND_USER")
+                password = System.getenv("DIAMOND_PASSWORD")
+            }
+
+            version = project.version
+        }
+    }
+}

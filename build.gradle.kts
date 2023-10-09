@@ -24,6 +24,8 @@ val internal by configurations.creating {
     attributes { attribute(relocated, true) }
 }
 
+version = "590+markdown"
+
 val common = registerStripReferencesAttribute("common") {
     excludes.add("net.minecraft")
 }
@@ -36,7 +38,6 @@ dependencies {
     internal(libs.commonmark)
     internal(libs.commonmark.ext.gfm.strikethrough)
     internal(libs.commonmark.ext.ins)
-    internal(libs.dom4j)
     implementation(prebundle(internal))
 
     // Depending on LWJGL3 instead of 2 so we can choose opengl bindings only
