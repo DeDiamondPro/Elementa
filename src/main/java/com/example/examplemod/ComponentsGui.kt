@@ -10,7 +10,6 @@ import gg.essential.elementa.components.inspector.Inspector
 import gg.essential.elementa.constraints.*
 import gg.essential.elementa.dsl.*
 import gg.essential.elementa.effects.OutlineEffect
-import gg.essential.elementa.markdown.MarkdownComponent
 import java.awt.Color
 import java.net.URL
 
@@ -263,25 +262,6 @@ class ComponentsGui : WindowScreen(ElementaVersion.V2) {
 
                 width = 150.pixels()
                 height = 75.pixels()
-            } childOf this
-        } childOf window
-
-        ComponentType("Markdown") {
-            MarkdownComponent(
-                """
-                    # Markdown!
-                    
-                    This is pretty cool. We [can](https://google.com) now render arbitrary markdown beautifully.
-                    
-                    ```
-                    We even have code :)
-                    ```
-                """.trimIndent()
-            ).constrain {
-                x = 2.pixels()
-                y = SiblingConstraint(padding = 2f)
-                width = 200.pixels()
-                height = 100.pixels()
             } childOf this
         } childOf window
 

@@ -35,9 +35,6 @@ dependencies {
     compileOnly(libs.kotlin.reflect)
     compileOnly(libs.jetbrains.annotations)
 
-    internal(libs.commonmark)
-    internal(libs.commonmark.ext.gfm.strikethrough)
-    internal(libs.commonmark.ext.ins)
     implementation(prebundle(internal))
 
     // Depending on LWJGL3 instead of 2 so we can choose opengl bindings only

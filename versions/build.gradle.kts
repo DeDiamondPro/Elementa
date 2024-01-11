@@ -92,7 +92,7 @@ tasks.named<Jar>("sourcesJar") {
     from(project(":").sourceSets.main.map { it.allSource })
 }
 
-version = "DIAMOND-1"
+version = "DIAMOND-3"
 
 publishing {
     repositories {
@@ -103,8 +103,8 @@ publishing {
             url = uri("https://maven.dediamondpro.dev/releases")
 
             credentials {
-                username = System.getenv("DIAMOND_USER")
-                password = System.getenv("DIAMOND_PASSWORD")
+                username = System.getenv("MAVEN_DIAMOND_USER")
+                password = System.getenv("MAVEN_DIAMOND_PASSWORD")
             }
 
             version = project.version
