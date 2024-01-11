@@ -92,7 +92,7 @@ tasks.named<Jar>("sourcesJar") {
     from(project(":").sourceSets.main.map { it.allSource })
 }
 
-version = "DIAMOND-3"
+version = "DIAMOND-4"
 
 publishing {
     repositories {
