@@ -43,10 +43,10 @@ open class UIImage @JvmOverloads constructor(
         imageFuture.exceptionally {
             it.printStackTrace()
             return@exceptionally null
-        }.thenAcceptAsync {
+        }.thenAccept {
             if (it == null) {
                 destroy = false
-                return@thenAcceptAsync
+                return@thenAccept
             }
             imageWidth = it.width.toFloat()
             imageHeight = it.height.toFloat()
