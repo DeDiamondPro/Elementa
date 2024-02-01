@@ -6,7 +6,6 @@ import gg.essential.elementa.constraints.resolution.ConstraintResolutionGui
 import gg.essential.elementa.constraints.resolution.ConstraintResolver
 import gg.essential.elementa.constraints.resolution.ConstraintResolverV2
 import gg.essential.elementa.effects.ScissorEffect
-import gg.essential.elementa.font.FontRenderer
 import gg.essential.elementa.impl.Platform.Companion.platform
 import gg.essential.elementa.utils.elementaDev
 import gg.essential.elementa.utils.requireMainThread
@@ -43,14 +42,6 @@ class Window @JvmOverloads constructor(
 
     init {
         super.parent = this
-    }
-
-    override fun afterInitialization() {
-        enqueueRenderOperation {
-            FontRenderer.initShaders()
-            UICircle.initShaders()
-            UIRoundedRectangle.initShaders()
-        }
     }
 
     override fun draw(matrixStack: UMatrixStack) =

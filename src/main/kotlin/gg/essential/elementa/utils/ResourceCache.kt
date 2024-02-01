@@ -2,7 +2,6 @@ package gg.essential.elementa.utils
 
 import gg.essential.elementa.components.UIImage
 import gg.essential.elementa.components.image.CacheableImage
-import gg.essential.elementa.components.image.MSDFComponent
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
@@ -30,18 +29,5 @@ class ResourceCache(val size: Int = 50) {
 
     fun invalidate(path: String): Boolean {
         return cacheMap.remove(path) != null
-    }
-
-    fun getMSDFComponent(path: String): MSDFComponent {
-        if (cacheMap.size > size)
-            cacheMap.clear()
-        val cachedImage = cacheMap.computeIfAbsent(path) { pth ->
-            MSDFComponent(CompletableFuture.supplyAsync {
-                ImageIO.read(this::class.java.getResourceAsStream(pth))
-            })
-        }
-        return MSDFComponent(CompletableFuture.completedFuture<BufferedImage>(null)).also {
-            cachedImage.supply(it)
-        }
     }
 }

@@ -92,41 +92,6 @@ class ComponentsGui : WindowScreen(ElementaVersion.V2) {
             } childOf this
         } childOf window
 
-        ComponentType("UIRoundedRectangle") {
-            UIRoundedRectangle(2f).constrain {
-                x = 2.pixels()
-                y = SiblingConstraint() + 5.pixels()
-
-                width = 100.pixels()
-                height = 50.pixels()
-            } childOf this
-
-            UIRoundedRectangle(10f).constrain {
-                x = 2.pixels()
-                y = SiblingConstraint() + 5.pixels()
-
-                width = 100.pixels()
-                height = 50.pixels()
-            } childOf this
-        } childOf window
-
-        ComponentType("UICircle") {
-            UICircle().constrain {
-                // These x & y positions describe the CENTER of the circle
-                x = 30.pixels()
-                y = SiblingConstraint() + 15.pixels()
-
-                // We do not specify the width & height of the circle, rather, we specify
-                // its radius.
-                radius = 10.pixels()
-            } childOf this
-
-            UICircle(10f).constrain {
-                x = 30.pixels()
-                y = SiblingConstraint() + 15.pixels()
-            } childOf this
-        } childOf window
-
         ComponentType("UIShape") {
             val shapeHolder = UIContainer().constrain {
                 x = 2.pixels()
