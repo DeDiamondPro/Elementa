@@ -7,13 +7,19 @@ import net.minecraft.util.ChatAllowedCharacters;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+//#if MC>=12005
+//$$ import net.minecraft.util.StringHelper;
+//#endif
+
 @ApiStatus.Internal
 @SuppressWarnings("unused") // instantiated via reflection from Platform.Companion
 public class PlatformImpl implements Platform {
 
     @Override
     public int getMcVersion() {
-        //#if MC==11801
+        //#if MC==12005
+        //$$ return 12005;
+        //#elseif MC==11801
         //$$ return 11801;
         //#elseif MC==11701
         //$$ return 11701;
@@ -41,7 +47,11 @@ public class PlatformImpl implements Platform {
 
     @Override
     public boolean isAllowedInChat(char c) {
+        //#if MC>=12005
+        //$$ return StringHelper.isValidChar(c);
+        //#else
         return ChatAllowedCharacters.isAllowedCharacter(c);
+        //#endif
     }
 
     @Override

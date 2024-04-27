@@ -1,6 +1,7 @@
 import gg.essential.gradle.multiversion.excludeKotlinDefaultImpls
 import gg.essential.gradle.multiversion.mergePlatformSpecifics
 import gg.essential.gradle.util.*
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile
 
 plugins {
     kotlin("jvm")
@@ -25,14 +26,16 @@ dependencies {
     implementation(libs.kotlin.reflect)
     compileOnly(libs.jetbrains.annotations)
 
-    modApi(libs.versions.universalcraft.map { "gg.essential:universalcraft-$platform:$it" }) {
+    if (platform.mcVersion == 12005) modApi("gg.essential:universalcraft-$platform:325+diamond.1.20.5") {
+        exclude(group = "org.jetbrains.kotlin")
+    } else modApi(libs.versions.universalcraft.map { "gg.essential:universalcraft-$platform:$it" }) {
         exclude(group = "org.jetbrains.kotlin")
     }
 
     common(project(":"))
 
-    if (platform.isFabric) {
-        val fabricApiVersion = when(platform.mcVersion) {
+    if (platform.isFabric && platform.mcVersion < 12005) {
+        val fabricApiVersion = when (platform.mcVersion) {
             11404 -> "0.4.3+build.247-1.14"
             11502 -> "0.5.1+build.294-1.15"
             11601 -> "0.14.0+build.371-1.16"
@@ -42,11 +45,11 @@ dependencies {
             else -> throw GradleException("Unsupported platform $platform")
         }
         val fabricApiModules = mutableListOf(
-                "api-base",
-                "networking-v0",
-                "keybindings-v0",
-                "resource-loader-v0",
-                "lifecycle-events-v1",
+            "api-base",
+            "networking-v0",
+            "keybindings-v0",
+            "resource-loader-v0",
+            "lifecycle-events-v1",
         )
         if (platform.mcVersion >= 11600) {
             fabricApiModules.add("key-binding-api-v1")
@@ -55,6 +58,17 @@ dependencies {
             // Using this combo to add it to our deps but not to our maven publication cause it's only for the example
             modLocalRuntime(modCompileOnly(fabricApi.module("fabric-$module", fabricApiVersion))!!)
         }
+    }
+}
+
+repositories {
+    maven("https://maven.dediamondpro.dev/releases")
+}
+
+tasks.withType<KotlinJvmCompile>().configureEach {
+    compilerOptions {
+        languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_6
+        apiVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_6
     }
 }
 
@@ -92,7 +106,7 @@ tasks.named<Jar>("sourcesJar") {
     from(project(":").sourceSets.main.map { it.allSource })
 }
 
-version = "DIAMOND-6"
+version = "DIAMOND-7"
 
 publishing {
     repositories {

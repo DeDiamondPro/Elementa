@@ -169,6 +169,11 @@ public final class gg/essential/elementa/UIComponent$Companion {
 	public final fun guiHint (FZ)F
 }
 
+public final class gg/essential/elementa/UIComponent$sam$i$java_util_function_Predicate$0 : java/util/function/Predicate {
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public final synthetic fun test (Ljava/lang/Object;)Z
+}
+
 public class gg/essential/elementa/UIConstraints : java/util/Observable {
 	public fun <init> (Lgg/essential/elementa/UIComponent;)V
 	public final fun copy ()Lgg/essential/elementa/UIConstraints;
@@ -536,29 +541,6 @@ public final class gg/essential/elementa/components/UIBlock$Companion {
 	public final fun drawBlockWithActiveShader (Lgg/essential/universal/UMatrixStack;Ljava/awt/Color;DDDD)V
 }
 
-public final class gg/essential/elementa/components/UICircle : gg/essential/elementa/UIComponent {
-	public static final field Companion Lgg/essential/elementa/components/UICircle$Companion;
-	public fun <init> ()V
-	public fun <init> (F)V
-	public fun <init> (FLjava/awt/Color;)V
-	public fun <init> (FLjava/awt/Color;I)V
-	public synthetic fun <init> (FLjava/awt/Color;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun draw (Lgg/essential/universal/UMatrixStack;)V
-	public fun getHeight ()F
-	public fun getLeft ()F
-	public final fun getSteps ()I
-	public fun getTop ()F
-	public fun getWidth ()F
-	public fun isPositionCenter ()Z
-	public final fun setSteps (I)V
-}
-
-public final class gg/essential/elementa/components/UICircle$Companion {
-	public final fun drawCircle (FFFLjava/awt/Color;)V
-	public final fun drawCircle (Lgg/essential/universal/UMatrixStack;FFFLjava/awt/Color;)V
-	public final fun initShaders ()V
-}
-
 public class gg/essential/elementa/components/UIContainer : gg/essential/elementa/UIComponent {
 	public fun <init> ()V
 	public fun draw (Lgg/essential/universal/UMatrixStack;)V
@@ -634,18 +616,6 @@ public final class gg/essential/elementa/components/UIPoint : gg/essential/eleme
 	public final fun withX (Ljava/lang/Number;)Lgg/essential/elementa/components/UIPoint;
 	public final fun withY (Lgg/essential/elementa/constraints/PositionConstraint;)Lgg/essential/elementa/components/UIPoint;
 	public final fun withY (Ljava/lang/Number;)Lgg/essential/elementa/components/UIPoint;
-}
-
-public class gg/essential/elementa/components/UIRoundedRectangle : gg/essential/elementa/UIComponent {
-	public static final field Companion Lgg/essential/elementa/components/UIRoundedRectangle$Companion;
-	public fun <init> (F)V
-	public fun draw (Lgg/essential/universal/UMatrixStack;)V
-}
-
-public final class gg/essential/elementa/components/UIRoundedRectangle$Companion {
-	public final fun drawRoundedRectangle (FFFFFLjava/awt/Color;)V
-	public final fun drawRoundedRectangle (Lgg/essential/universal/UMatrixStack;FFFFFLjava/awt/Color;)V
-	public final fun initShaders ()V
 }
 
 public class gg/essential/elementa/components/UIShape : gg/essential/elementa/UIComponent {
@@ -725,7 +695,6 @@ public final class gg/essential/elementa/components/Window : gg/essential/elemen
 	public fun <init> (Lgg/essential/elementa/ElementaVersion;I)V
 	public synthetic fun <init> (Lgg/essential/elementa/ElementaVersion;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun addFloatingComponent (Lgg/essential/elementa/UIComponent;)V
-	public fun afterInitialization ()V
 	public fun animationFrame ()V
 	public fun draw (Lgg/essential/universal/UMatrixStack;)V
 	public final fun drawFloatingComponents ()V
@@ -814,39 +783,6 @@ public final class gg/essential/elementa/components/image/ImageProvider$DefaultI
 	public static fun drawImage (Lgg/essential/elementa/components/image/ImageProvider;DDDDLjava/awt/Color;)V
 	public static fun drawImage (Lgg/essential/elementa/components/image/ImageProvider;Lgg/essential/universal/UMatrixStack;DDDDLjava/awt/Color;)V
 	public static fun drawImageCompat (Lgg/essential/elementa/components/image/ImageProvider;Lgg/essential/universal/UMatrixStack;DDDDLjava/awt/Color;)V
-}
-
-public class gg/essential/elementa/components/image/MSDFComponent : gg/essential/elementa/UIComponent, gg/essential/elementa/components/image/CacheableImage {
-	public static final field Companion Lgg/essential/elementa/components/image/MSDFComponent$Companion;
-	public fun <init> (Ljava/util/concurrent/CompletableFuture;)V
-	public fun <init> (Lkotlin/jvm/functions/Function0;)V
-	public fun applyTexture (Lgg/essential/universal/utils/ReleasedDynamicTexture;)V
-	public fun draw (Lgg/essential/universal/UMatrixStack;)V
-	public final fun getDestroy ()Z
-	public final fun getImageHeight ()F
-	public final fun getImageWidth ()F
-	public final fun isLoaded ()Z
-	public static final fun ofFile (Ljava/io/File;)Lgg/essential/elementa/components/image/MSDFComponent;
-	public static final fun ofResource (Ljava/lang/String;)Lgg/essential/elementa/components/image/MSDFComponent;
-	public static final fun ofResourceCached (Ljava/lang/String;)Lgg/essential/elementa/components/image/MSDFComponent;
-	public static final fun ofResourceCached (Ljava/lang/String;Lgg/essential/elementa/utils/ResourceCache;)Lgg/essential/elementa/components/image/MSDFComponent;
-	public static final fun ofURL (Ljava/net/URL;)Lgg/essential/elementa/components/image/MSDFComponent;
-	public static final fun ofURL (Ljava/net/URL;Lgg/essential/elementa/components/image/ImageCache;)Lgg/essential/elementa/components/image/MSDFComponent;
-	public final fun setDestroy (Z)V
-	public final fun setImageHeight (F)V
-	public final fun setImageWidth (F)V
-	public fun supply (Lgg/essential/elementa/components/image/CacheableImage;)V
-}
-
-public final class gg/essential/elementa/components/image/MSDFComponent$Companion {
-	public final fun areShadersInitialized ()Z
-	public final fun initShaders ()V
-	public final fun ofFile (Ljava/io/File;)Lgg/essential/elementa/components/image/MSDFComponent;
-	public final fun ofResource (Ljava/lang/String;)Lgg/essential/elementa/components/image/MSDFComponent;
-	public final fun ofResourceCached (Ljava/lang/String;)Lgg/essential/elementa/components/image/MSDFComponent;
-	public final fun ofResourceCached (Ljava/lang/String;Lgg/essential/elementa/utils/ResourceCache;)Lgg/essential/elementa/components/image/MSDFComponent;
-	public final fun ofURL (Ljava/net/URL;)Lgg/essential/elementa/components/image/MSDFComponent;
-	public final fun ofURL (Ljava/net/URL;Lgg/essential/elementa/components/image/ImageCache;)Lgg/essential/elementa/components/image/MSDFComponent;
 }
 
 public abstract class gg/essential/elementa/components/input/AbstractTextInput : gg/essential/elementa/UIComponent {
@@ -2763,33 +2699,6 @@ public final class gg/essential/elementa/font/FontProvider$DefaultImpls {
 	public static fun visit (Lgg/essential/elementa/font/FontProvider;Lgg/essential/elementa/constraints/resolution/ConstraintVisitor;Lgg/essential/elementa/constraints/ConstraintType;Z)V
 }
 
-public final class gg/essential/elementa/font/FontRenderer : gg/essential/elementa/font/FontProvider {
-	public static final field Companion Lgg/essential/elementa/font/FontRenderer$Companion;
-	public fun <init> (Lgg/essential/elementa/font/data/Font;Lgg/essential/elementa/font/data/Font;)V
-	public synthetic fun <init> (Lgg/essential/elementa/font/data/Font;Lgg/essential/elementa/font/data/Font;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun drawString (Lgg/essential/universal/UMatrixStack;Ljava/lang/String;Ljava/awt/Color;FFFFZLjava/awt/Color;)V
-	public fun getBaseLineHeight ()F
-	public fun getBelowLineHeight ()F
-	public fun getCachedValue ()Lgg/essential/elementa/font/FontProvider;
-	public synthetic fun getCachedValue ()Ljava/lang/Object;
-	public fun getConstrainTo ()Lgg/essential/elementa/UIComponent;
-	public final fun getLineHeight (F)F
-	public fun getRecalculate ()Z
-	public fun getShadowHeight ()F
-	public fun getStringHeight (Ljava/lang/String;F)F
-	public fun getStringWidth (Ljava/lang/String;F)F
-	public fun setCachedValue (Lgg/essential/elementa/font/FontProvider;)V
-	public synthetic fun setCachedValue (Ljava/lang/Object;)V
-	public fun setConstrainTo (Lgg/essential/elementa/UIComponent;)V
-	public fun setRecalculate (Z)V
-	public fun visitImpl (Lgg/essential/elementa/constraints/resolution/ConstraintVisitor;Lgg/essential/elementa/constraints/ConstraintType;)V
-}
-
-public final class gg/essential/elementa/font/FontRenderer$Companion {
-	public final fun areShadersInitialized ()Z
-	public final fun initShaders ()V
-}
-
 public final class gg/essential/elementa/font/data/Atlas {
 	public fun <init> (Ljava/lang/String;FFFFLjava/lang/String;FFF)V
 	public final fun component1 ()Ljava/lang/String;
@@ -3369,7 +3278,6 @@ public final class gg/essential/elementa/utils/ResourceCache {
 	public fun <init> ()V
 	public fun <init> (I)V
 	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getMSDFComponent (Ljava/lang/String;)Lgg/essential/elementa/components/image/MSDFComponent;
 	public final fun getSize ()I
 	public final fun getUIImage (Ljava/lang/String;)Lgg/essential/elementa/components/image/CacheableImage;
 	public final fun invalidate (Ljava/lang/String;)Z

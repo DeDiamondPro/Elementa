@@ -4,6 +4,7 @@ import gg.essential.elementa.effects.StencilEffect;
 import gg.essential.universal.UMinecraft;
 import net.minecraft.client.gui.GuiMainMenu;
 
+//#if MC<12005
 //#if FORGE
 //#if MC<=11202
 import net.minecraftforge.common.MinecraftForge;
@@ -70,3 +71,4 @@ public class ExampleMod {
         }
     }
 }
+//#endif

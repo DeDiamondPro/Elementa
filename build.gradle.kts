@@ -3,7 +3,7 @@ import gg.essential.gradle.util.*
 import gg.essential.gradle.util.RelocationTransform.Companion.registerRelocationAttribute
 
 plugins {
-    kotlin("jvm") version "1.6.10"
+    kotlin("jvm") version "1.9.23"
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.8.0"
     id("org.jetbrains.dokka") version "1.6.10" apply false
     id("gg.essential.defaults")
