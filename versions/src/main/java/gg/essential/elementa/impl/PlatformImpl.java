@@ -19,6 +19,8 @@ public class PlatformImpl implements Platform {
     public int getMcVersion() {
         //#if MC==12005
         //$$ return 12005;
+        //#elseif MC==12004
+        //$$ return 12004;
         //#elseif MC==11801
         //$$ return 11801;
         //#elseif MC==11701
