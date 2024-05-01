@@ -26,7 +26,7 @@ dependencies {
     implementation(libs.kotlin.reflect)
     compileOnly(libs.jetbrains.annotations)
 
-    if (platform.mcVersion == 12005) modApi("gg.essential:universalcraft-$platform:325+diamond.1.20.5") {
+    if (platform.mcVersion == 12005) modApi("gg.essential:universalcraft-$platform:325+diamond.${if (platform.isNeoForge) "neoforge" else "1.20.5"}") {
         exclude(group = "org.jetbrains.kotlin")
     } else modApi(libs.versions.universalcraft.map { "gg.essential:universalcraft-$platform:$it" }) {
         exclude(group = "org.jetbrains.kotlin")
@@ -61,8 +61,19 @@ dependencies {
     }
 }
 
+preprocess {
+    vars.set(emptyMap())
+    vars.put("MC", mcVersion)
+    vars.put("FABRIC", if (platform.isFabric) 1 else 0)
+    // Overwrite the forge var so it is also true for neoforge
+    vars.put("FORGE", if (platform.isForgeLike) 1 else 0)
+    vars.put("NEOFORGE", if (platform.isNeoForge) 1 else 0)
+}
+
 repositories {
     maven("https://maven.dediamondpro.dev/releases")
+    maven("https://maven.neoforged.net/releases")
+    mavenLocal()
 }
 
 tasks.withType<KotlinJvmCompile>().configureEach {
@@ -106,7 +117,7 @@ tasks.named<Jar>("sourcesJar") {
     from(project(":").sourceSets.main.map { it.allSource })
 }
 
-version = "DIAMOND-7"
+version = "DIAMOND-8"
 
 publishing {
     repositories {

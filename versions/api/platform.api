@@ -3,9 +3,9 @@ public final class gg/essential/elementa/dsl/UtilitiesKt_platform {
 	public static final fun width (Lnet/minecraft/util/IChatComponent;FLgg/essential/elementa/font/FontProvider;)F
 	@1.8.9-forge
 	public static synthetic fun width$default (Lnet/minecraft/util/IChatComponent;FLgg/essential/elementa/font/FontProvider;ILjava/lang/Object;)F
-	@1.17.1-forge,1.18.1-forge
+	@1.17.1-forge,1.18.1-forge,1.20.5-neoforge
 	public static final fun width (Lnet/minecraft/network/chat/Component;FLgg/essential/elementa/font/FontProvider;)F
-	@1.17.1-forge,1.18.1-forge
+	@1.17.1-forge,1.18.1-forge,1.20.5-neoforge
 	public static synthetic fun width$default (Lnet/minecraft/network/chat/Component;FLgg/essential/elementa/font/FontProvider;ILjava/lang/Object;)F
 	@1.16.2-fabric,1.17.1-fabric,1.18.1-fabric,1.20.5-fabric
 	public static final fun width (Lnet/minecraft/text/Text;FLgg/essential/elementa/font/FontProvider;)F
