@@ -3,7 +3,6 @@ package gg.essential.elementa.impl;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.util.ChatAllowedCharacters;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,7 +16,9 @@ public class PlatformImpl implements Platform {
 
     @Override
     public int getMcVersion() {
-        //#if MC==12005
+        //#if MC==12006
+        //$$ return 12006;
+        //#elseif MC==12005
         //$$ return 12005;
         //#elseif MC==12004
         //$$ return 12004;
@@ -45,15 +46,6 @@ public class PlatformImpl implements Platform {
     @Override
     public void setCurrentScreen(@Nullable Object screen) {
         Minecraft.getMinecraft().displayGuiScreen((GuiScreen) screen);
-    }
-
-    @Override
-    public boolean isAllowedInChat(char c) {
-        //#if MC>=12005
-        //$$ return StringHelper.isValidChar(c);
-        //#else
-        return ChatAllowedCharacters.isAllowedCharacter(c);
-        //#endif
     }
 
     @Override

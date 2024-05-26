@@ -1,7 +1,9 @@
+@file:OptIn(ExperimentalContracts::class)
 package gg.essential.elementa.layoutdsl
 
 import gg.essential.elementa.UIComponent
 import gg.essential.elementa.state.State
+import gg.essential.elementa.state.v2.ReferenceHolder
 import gg.essential.elementa.common.ListState
 import gg.essential.elementa.common.not
 import gg.essential.elementa.state.v2.*
@@ -15,11 +17,12 @@ import gg.essential.elementa.state.v2.State as StateV2
 class LayoutScope(
     private val component: UIComponent,
     private val parentScope: LayoutScope?,
+    val stateScope: ReferenceHolder,
 ) {
     /**
-     * You should only use this for calling `toV1`, or any State-related methods that require a [gg.essential.elementa.state.v2.ReferenceHolder].
+     * As the name says, don't use this unless you really have to.
      */
-    val stateScope: UIComponent
+    val containerDontUseThisUnlessYouReallyHaveTo: UIComponent
         get() = component
 
     private val childrenScopes = mutableListOf<LayoutScope>()
@@ -28,7 +31,7 @@ class LayoutScope(
         this@LayoutScope.component.getChildModifier().applyToComponent(this)
         modifier.applyToComponent(this)
 
-        val childScope = LayoutScope(this, this@LayoutScope)
+        val childScope = LayoutScope(this, this@LayoutScope, this)
         childrenScopes.add(childScope)
 
         childScope.block()
@@ -105,7 +108,7 @@ class LayoutScope(
      * This requires that [T] be usable as a key in a HashMap.
      */
     fun <T> forEach(state: ListState<T>, cache: Boolean = false, block: LayoutScope.(T) -> Unit) {
-        val forEachScope = LayoutScope(component, this@LayoutScope)
+        val forEachScope = LayoutScope(component, this@LayoutScope, stateScope)
         childrenScopes.add(forEachScope)
 
         val cacheMap =
@@ -121,7 +124,11 @@ class LayoutScope(
                     cachedScope.remount()
                 }
             } else {
-                val newScope = LayoutScope(component, forEachScope)
+                // If the `forEach` is not cached, we give each child scope its own reference holder.
+                // This scope will be dropped once the child scope is removed.
+                val childStateScope = if (cache) forEachScope.stateScope else ReferenceHolderImpl()
+                val newScope = LayoutScope(component, forEachScope, childStateScope)
+
                 forEachScope.childrenScopes.add(index, newScope)
                 newScope.block(element)
                 if (!forEachScope.isVirtualScopeMounted()) {
@@ -252,14 +259,100 @@ class LayoutScope(
     }
 }
 
-@OptIn(ExperimentalContracts::class)
+/**
+ * Runs [block] to lay out children of `this` component.
+ *
+ * The passed [modifier], if any, is applied to `this` component.
+ *
+ * Note: This does **not** change the constraints of `this`. These must be set up manually or via the passed [modifier].
+ *
+ * Note: Direct children of `this` will by default be top-left aligned as with all plain Elementa components.
+ *   Consider using one of [layoutAsBox], [layoutAsRow], or [layoutAsColumn] instead to get the default center alignment
+ *   that is typical for Layout DSL.
+ */
 inline fun UIComponent.layout(modifier: Modifier = Modifier, block: LayoutScope.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
     modifier.applyToComponent(this)
-    LayoutScope(this, null).block()
+    LayoutScope(this, null, this).block()
 }
+
+/**
+ * Runs [block] to lay out children of `this` component as if it was a [box].
+ *
+ * Note: This does **not** change the size constrains of `this`. These must be set up manually or via [modifier].
+ */
+fun UIComponent.layoutAsBox(modifier: Modifier = Modifier, block: LayoutScope.() -> Unit) {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+    addChildModifier(Modifier.alignBoth(Alignment.Center))
+    layout(modifier, block)
+}
+
+/**
+ * Runs [block] to lay out children of `this` component as if it was a [row].
+ *
+ * Note: This does **not** change the size constrains of `this`. These must be set up manually or via [modifier].
+ *   For the width, one would typically use [Modifier.fillWidth] or [Modifier.childBasedWidth].
+ *   For the height, one would typically use [Modifier.fillHeight] or [Modifier.childBasedMaxHeight].
+ */
+fun UIComponent.layoutAsRow(modifier: Modifier, horizontalArrangement: Arrangement = Arrangement.spacedBy(), verticalAlignment: Alignment = Alignment.Center, block: LayoutScope.() -> Unit): UIComponent {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+    addChildModifier(Modifier.alignVertical(verticalAlignment))
+    layout(modifier, block)
+    horizontalArrangement.initialize(this, Axis.HORIZONTAL)
+    return this
+}
+
+/**
+ * Runs [block] to lay out children of `this` component as if it was a [column].
+ *
+ * Note: This does **not** change the size constrains of `this`. These must be set up manually or via [modifier].
+ *   For the width, one would typically use [Modifier.fillWidth] or [Modifier.childBasedMaxWidth].
+ *   For the height, one would typically use [Modifier.fillHeight] or [Modifier.childBasedHeight].
+ */
+fun UIComponent.layoutAsColumn(modifier: Modifier, verticalArrangement: Arrangement = Arrangement.spacedBy(), horizontalAlignment: Alignment = Alignment.Center, block: LayoutScope.() -> Unit): UIComponent {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+    addChildModifier(Modifier.alignHorizontal(horizontalAlignment))
+    layout(modifier, block)
+    verticalArrangement.initialize(this, Axis.VERTICAL)
+    return this
+}
+
+// Overloads without Modifier argument
+/**
+ * Runs [block] to lay out children of `this` component as if it was a [row].
+ *
+ * Note: This does **not** change the size constrains of `this`. These must be set up manually or via [modifier].
+ *   For the width, one would typically use [Modifier.fillWidth] or [Modifier.childBasedWidth].
+ *   For the height, one would typically use [Modifier.fillHeight] or [Modifier.childBasedMaxHeight].
+ */
+fun UIComponent.layoutAsRow(horizontalArrangement: Arrangement = Arrangement.spacedBy(), verticalAlignment: Alignment = Alignment.Center, block: LayoutScope.() -> Unit): UIComponent {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+    return layoutAsRow(Modifier, horizontalArrangement, verticalAlignment, block)
+}
+/**
+ * Runs [block] to lay out children of `this` component as if it was a [column].
+ *
+ * Note: This does **not** change the size constrains of `this`. These must be set up manually or via [modifier].
+ *   For the width, one would typically use [Modifier.fillWidth] or [Modifier.childBasedMaxWidth].
+ *   For the height, one would typically use [Modifier.fillHeight] or [Modifier.childBasedHeight].
+ */
+fun UIComponent.layoutAsColumn(verticalArrangement: Arrangement = Arrangement.spacedBy(), horizontalAlignment: Alignment = Alignment.Center, block: LayoutScope.() -> Unit): UIComponent {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+    return layoutAsColumn(Modifier, verticalArrangement, horizontalAlignment, block)
+}
+
 
 interface LayoutDslComponent {
     fun LayoutScope.layout(modifier: Modifier = Modifier)

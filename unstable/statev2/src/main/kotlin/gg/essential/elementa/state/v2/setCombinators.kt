@@ -34,13 +34,14 @@ fun <T> SetState<T>.filter(filter: (T) -> Boolean): SetState<T> =
 fun <T, U> SetState<T>.mapEach(mapper: (T) -> U): SetState<U> {
     val mappedValues = mutableMapOf<T, U>()
     val mappedCount = mutableMapOf<U, Int>()
-    val init = MutableTrackedSet(get().mapTo(mutableSetOf()) { value ->
-        mapper(value).also { mappedValue ->
-            mappedValues[value] = mappedValue
-            mappedCount.compute(mappedValue) { _, i -> (i ?: 0) + 1}
-        }
-    })
-    return mapChange({ init }) { list, change ->
+    return mapChange({ set ->
+        MutableTrackedSet(set.mapTo(mutableSetOf()) { value ->
+            mapper(value).also { mappedValue ->
+                mappedValues[value] = mappedValue
+                mappedCount.compute(mappedValue) { _, i -> (i ?: 0) + 1}
+            }
+        })
+    }) { list, change ->
         when (change) {
             is TrackedSet.Add -> {
                 val mappedValue = mapper(change.element)
@@ -71,7 +72,7 @@ fun <T, U> SetState<T>.mapSet(mapper: (Set<T>) -> Set<U>): SetState<U> =
     map(mapper).toSetState()
 
 fun <T, U, V> SetState<T>.zipWithEachElement(otherState: State<U>, transform: (T, U) -> V) =
-    zip(otherState).map { (set, other) -> set.mapTo(mutableSetOf()) { transform(it, other) } }.toSetState()
+    zip(otherState) { set, other -> set.mapTo(mutableSetOf()) { transform(it, other) } }.toSetState()
 
 fun <T, U : Any> SetState<T>.mapEachNotNull(mapper: (T) -> U?) = mapSet { it.mapNotNullTo(mutableSetOf(), mapper) }
 

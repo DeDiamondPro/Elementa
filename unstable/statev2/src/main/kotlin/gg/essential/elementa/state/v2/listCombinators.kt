@@ -8,10 +8,12 @@ import gg.essential.elementa.state.v2.combinators.zip
 
 fun <T> ListState<T>.toSet(): SetState<T> {
     val count = mutableMapOf<T, Int>()
-    for (element in get()) {
-        count.compute(element) { _, c -> (c ?: 0) + 1 }
-    }
-    return mapChange({ MutableTrackedSet(it.toMutableSet()) }, { set, change ->
+    return mapChange({ list ->
+        for (element in list) {
+            count.compute(element) { _, c -> (c ?: 0) + 1 }
+        }
+        MutableTrackedSet(list.toMutableSet())
+    }, { set, change ->
         when (change) {
             is TrackedList.Add -> {
                 if (count.compute(change.element.value) { _, c -> (c ?: 0) + 1 } == 1) {
@@ -35,17 +37,18 @@ fun <T> ListState<T>.toSet(): SetState<T> {
 // mapList { it.filter(filter) }
 fun <T> ListState<T>.filter(filter: (T) -> Boolean): ListState<T> {
     val indices = mutableListOf<Int>()
-    val init = MutableTrackedList(mutableListOf<T>().also { filteredList ->
-        for (elem in get()) {
-            if (filter(elem)) {
-                indices.add(filteredList.size)
-                filteredList.add(elem)
-            } else {
-                indices.add(-1)
+    return mapChange({ list ->
+        MutableTrackedList(mutableListOf<T>().also { filteredList ->
+            for (elem in list) {
+                if (filter(elem)) {
+                    indices.add(filteredList.size)
+                    filteredList.add(elem)
+                } else {
+                    indices.add(-1)
+                }
             }
-        }
-    })
-    return mapChange({ init }) { list, change ->
+        })
+    }) { list, change ->
         when (change) {
             is TrackedList.Add -> {
                 if (filter(change.element.value)) {
@@ -118,10 +121,10 @@ fun <T, U> ListState<T>.mapList(mapper: (List<T>) -> List<U>): ListState<U> =
     map(mapper).toListState()
 
 fun <T, U, V> ListState<T>.zipWithEachElement(otherState: State<U>, transform: (T, U) -> V) =
-    zip(otherState).map { (list, other) -> list.map { transform(it, other) } }.toListState()
+    zip(otherState) { list, other -> list.map { transform(it, other) } }.toListState()
 
 fun <T, U, V> ListState<T>.zipElements(otherList: ListState<U>, transform: (T, U) -> V) =
-    zip(otherList).map { (a, b) -> a.zip(b, transform) }.toListState()
+    zip(otherList) { a, b -> a.zip(b, transform) }.toListState()
 
 fun <T, U> ListState<T>.mapEachNotNull(mapper: (T) -> U?) = mapList { it.mapNotNull(mapper) }
 

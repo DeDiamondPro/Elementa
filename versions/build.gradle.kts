@@ -26,7 +26,7 @@ dependencies {
     implementation(libs.kotlin.reflect)
     compileOnly(libs.jetbrains.annotations)
 
-    if (platform.mcVersion == 12005 || platform.isNeoForge) modApi("gg.essential:universalcraft-$platform:325+diamond.${if (platform.isNeoForge) "neoforge" else "1.20.5"}") {
+    if (platform.isNeoForge) modApi("gg.essential:universalcraft-$platform:337+diamond.neoforge") {
         exclude(group = "org.jetbrains.kotlin")
     } else modApi(libs.versions.universalcraft.map { "gg.essential:universalcraft-$platform:$it" }) {
         exclude(group = "org.jetbrains.kotlin")
@@ -117,7 +117,7 @@ tasks.named<Jar>("sourcesJar") {
     from(project(":").sourceSets.main.map { it.allSource })
 }
 
-version = "DIAMOND-8"
+version = "DIAMOND-9"
 
 publishing {
     repositories {
