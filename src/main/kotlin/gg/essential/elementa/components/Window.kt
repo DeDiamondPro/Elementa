@@ -6,7 +6,6 @@ import gg.essential.elementa.constraints.resolution.ConstraintResolutionGui
 import gg.essential.elementa.constraints.resolution.ConstraintResolver
 import gg.essential.elementa.constraints.resolution.ConstraintResolverV2
 import gg.essential.elementa.effects.ScissorEffect
-import gg.essential.elementa.impl.Platform.Companion.platform
 import gg.essential.elementa.utils.elementaDev
 import gg.essential.elementa.utils.requireMainThread
 import gg.essential.universal.*
@@ -32,7 +31,8 @@ class Window @JvmOverloads constructor(
         private set
     private var componentRequestingFocus: UIComponent? = null
 
-    private var cancelDrawing = false
+    var hasErrored = false
+        private set
 
     internal var clickInterceptor: ((mouseX: Double, mouseY: Double, button: Int) -> Boolean)? = null
 
@@ -48,7 +48,7 @@ class Window @JvmOverloads constructor(
         version.enableFor { doDraw(matrixStack) }
 
     private fun doDraw(matrixStack: UMatrixStack) {
-        if (cancelDrawing)
+        if (hasErrored)
             return
 
         requireMainThread()
@@ -98,9 +98,9 @@ class Window @JvmOverloads constructor(
             beforeDraw(matrixStack)
             super.draw(matrixStack)
         } catch (e: Throwable) {
-            cancelDrawing = true
+            hasErrored = true
 
-            val guiName = platform.currentScreen?.javaClass?.simpleName ?: "<unknown>"
+            val guiName = UMinecraft.currentScreenObj?.javaClass?.simpleName ?: "<unknown>"
             when (e) {
                 is StackOverflowError -> {
                     println("Elementa: Cyclic constraint structure detected!")
@@ -118,7 +118,7 @@ class Window @JvmOverloads constructor(
             ScissorEffect.currentScissorState = null
             GL11.glDisable(GL11.GL_SCISSOR_TEST)
 
-            platform.currentScreen = when {
+            UMinecraft.currentScreenObj = when {
                 e is StackOverflowError && elementaDev -> {
                     val cyclicNodes = when (System.getProperty("elementa.dev.cycle_resolver", "2")) {
                         "2" -> ConstraintResolverV2(this).getCyclicNodes()
@@ -160,6 +160,10 @@ class Window @JvmOverloads constructor(
     }
 
     override fun mouseScroll(delta: Double) {
+        if (hasErrored && version >= ElementaVersion.v7) {
+            return
+        }
+
         requireMainThread()
 
         val (mouseX, mouseY) = getMousePosition()
@@ -174,6 +178,10 @@ class Window @JvmOverloads constructor(
     }
 
     override fun mouseClick(mouseX: Double, mouseY: Double, button: Int) {
+        if (hasErrored && version >= ElementaVersion.v7) {
+            return
+        }
+
         requireMainThread()
 
         //  Override mouse positions to be in the center of the pixel on Elementa versions
@@ -219,6 +227,10 @@ class Window @JvmOverloads constructor(
     }
 
     override fun mouseRelease() {
+        if (hasErrored && version >= ElementaVersion.v7) {
+            return
+        }
+
         requireMainThread()
 
         super.mouseRelease()
@@ -227,6 +239,10 @@ class Window @JvmOverloads constructor(
     }
 
     override fun keyType(typedChar: Char, keyCode: Int) {
+        if (hasErrored && version >= ElementaVersion.v7) {
+            return
+        }
+
         requireMainThread()
 
         // If the typed character is in a PUA (https://en.wikipedia.org/wiki/Private_Use_Areas), we don't want to

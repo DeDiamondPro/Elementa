@@ -82,6 +82,30 @@ class Inspector @JvmOverloads constructor(
             height = 14.pixels()
         } childOf titleBlock
 
+        UIImage.ofResourceCached("/textures/inspector/click.png").constrain {
+            x = SiblingConstraint(10f)
+            y = CenterConstraint()
+            width = AspectConstraint(1f)
+            height = 12.pixels
+        }.apply {
+            textureMinFilter = UIImage.TextureScalingMode.LINEAR
+        }.onMouseClick { event ->
+            event.stopPropagation()
+            isClickSelecting = true
+
+            val rootWindow = Window.of(this)
+            rootWindow.clickInterceptor = { mouseX, mouseY, _ ->
+                rootWindow.clickInterceptor = null
+                isClickSelecting = false
+
+                val targetComponent = getClickSelectTarget(mouseX.toFloat(), mouseY.toFloat())
+                if (targetComponent != null) {
+                    findAndSelect(targetComponent)
+                }
+                true
+            }
+        } childOf titleBlock
+
         separator1 = UIBlock(outlineColor).constrain {
             y = SiblingConstraint()
             height = 2.pixels()
