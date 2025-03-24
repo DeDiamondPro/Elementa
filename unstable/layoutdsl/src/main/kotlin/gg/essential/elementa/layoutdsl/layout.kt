@@ -12,7 +12,6 @@ import gg.essential.elementa.state.v2.collections.TrackedList
 import gg.essential.elementa.state.v2.collections.trackedListOf
 import gg.essential.elementa.state.v2.combinators.map
 import gg.essential.elementa.state.v2.combinators.not
-import gg.essential.elementa.util.hoveredState
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -49,9 +48,6 @@ class LayoutScope(
 
     operator fun LayoutDslComponent.invoke(modifier: Modifier = Modifier) = layout(modifier)
 
-    @Deprecated("Use Modifier.hoverScope() and Modifier.whenHovered(), instead.")
-    fun hoveredState(hitTest: Boolean = true, layoutSafe: Boolean = true) = component.hoveredState(hitTest, layoutSafe)
-
     @Suppress("FunctionName")
     fun if_(state: State<Boolean>, cache: Boolean = true, block: LayoutScope.() -> Unit): IfDsl {
         return if_(state.toV2(), cache, block)
@@ -71,14 +67,6 @@ class LayoutScope(
         return IfDsl({ state() == null }, true)
     }
 
-    fun if_(condition: StateByScope.() -> Boolean, cache: Boolean = false, block: LayoutScope.() -> Unit): IfDsl {
-        return if_(stateBy(condition), cache, block)
-    }
-
-    fun <T> ifNotNull(stateBlock: StateByScope.() -> T?, cache: Boolean = false, block: LayoutScope.(T) -> Unit): IfDsl {
-        return ifNotNull(stateBy(stateBlock), cache, block)
-    }
-
     class IfDsl(internal val elseState: StateV2<Boolean>, internal var cache: Boolean)
 
     infix fun IfDsl.`else`(block: LayoutScope.() -> Unit) {
@@ -93,11 +81,6 @@ class LayoutScope(
     /** Makes available to the inner scope the value of the given [state]. */
     fun <T> bind(state: StateV2<T>, cache: Boolean = false, block: LayoutScope.(T) -> Unit) {
         forEach({ trackedListOf(state()) }, cache) { block(it) }
-    }
-
-    /** Makes available to the inner scope the value derived from the given [stateBlock]. */
-    fun <T> bind(stateBlock: StateByScope.() -> T, cache: Boolean = false, block: LayoutScope.(T) -> Unit) {
-        bind(stateBy(stateBlock), cache, block)
     }
 
     /**
@@ -304,12 +287,13 @@ inline fun UIComponent.layout(modifier: Modifier = Modifier, block: LayoutScope.
  *
  * Note: This does **not** change the size constrains of `this`. These must be set up manually or via [modifier].
  */
-fun UIComponent.layoutAsBox(modifier: Modifier = Modifier, block: LayoutScope.() -> Unit) {
+fun UIComponent.layoutAsBox(modifier: Modifier = Modifier, block: LayoutScope.() -> Unit): UIComponent {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
     addChildModifier(Modifier.alignBoth(Alignment.Center))
     layout(modifier, block)
+    return this
 }
 
 /**

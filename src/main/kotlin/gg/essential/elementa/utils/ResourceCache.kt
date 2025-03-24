@@ -2,6 +2,7 @@ package gg.essential.elementa.utils
 
 import gg.essential.elementa.components.UIImage
 import gg.essential.elementa.components.image.CacheableImage
+import gg.essential.elementa.components.inspector.Inspector
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
@@ -29,5 +30,11 @@ class ResourceCache(val size: Int = 50) {
 
     fun invalidate(path: String): Boolean {
         return cacheMap.remove(path) != null
+    }
+
+    private companion object {
+        init {
+            Inspector.registerComponentFactory(ResourceCache::class.java)
+        }
     }
 }

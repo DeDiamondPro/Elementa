@@ -2,6 +2,7 @@ package gg.essential.elementa.components
 
 import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.UIComponent
+import gg.essential.elementa.constraints.SuperConstraint
 import gg.essential.elementa.constraints.resolution.ConstraintResolutionGui
 import gg.essential.elementa.constraints.resolution.ConstraintResolver
 import gg.essential.elementa.constraints.resolution.ConstraintResolverV2
@@ -19,12 +20,24 @@ import java.util.concurrent.TimeUnit
  */
 class Window @JvmOverloads constructor(
     internal val version: ElementaVersion,
+    @Deprecated("See [ElementaVersion.V8].")
     val animationFPS: Int = 244
 ) : UIComponent() {
-    private var systemTime = -1L
+    private var legacyAnimationFrameTime = -1L
+    private var lastDrawTime: Long = -1
+    var animationTimeNs: Long = 0
+        private set
+    val animationTimeMs: Long
+        get() = animationTimeNs / 1_000_000
+
+    internal var allUpdateFuncs: MutableList<UpdateFunc> = mutableListOf()
+    internal var nextUpdateFuncIndex = 0
+
+    internal val cachedConstraints: MutableList<SuperConstraint<*>> = mutableListOf()
+
     private var currentMouseButton = -1
 
-    private var floatingComponents = mutableListOf<UIComponent>()
+    private var legacyFloatingComponents = mutableListOf<UIComponent>()
 
     var hoveredFloatingComponent: UIComponent? = null
     var focusedComponent: UIComponent? = null
@@ -42,6 +55,7 @@ class Window @JvmOverloads constructor(
 
     init {
         super.parent = this
+        cachedWindow = this
     }
 
     override fun draw(matrixStack: UMatrixStack) =
@@ -61,19 +75,51 @@ class Window @JvmOverloads constructor(
             it.remove()
         }
 
-        if (systemTime == -1L)
-            systemTime = System.currentTimeMillis()
+        if (legacyAnimationFrameTime == -1L)
+            legacyAnimationFrameTime = System.currentTimeMillis()
+        if (lastDrawTime == -1L)
+            lastDrawTime = System.currentTimeMillis()
+
+        val now = System.currentTimeMillis()
+        val dtMs = now - lastDrawTime
+        lastDrawTime = now
+
+        animationTimeNs += dtMs * 1_000_000
 
         try {
+
+            if (version >= ElementaVersion.v8) {
+                dispatchMouseDragging()
+
+                if (componentRequestingFocus != null) {
+                    dealWithFocusRequests()
+                }
+
+                invalidateCachedConstraints()
+            }
+
+            assertUpdateFuncInvariants()
+            nextUpdateFuncIndex = 0
+            while (true) {
+                val func = allUpdateFuncs.getOrNull(nextUpdateFuncIndex) ?: break
+                nextUpdateFuncIndex++
+                func(dtMs / 1000f, dtMs.toInt())
+            }
+
+            if (version >= ElementaVersion.v8) {
+                invalidateCachedConstraints()
+            }
 
             //If this Window is more than 5 seconds behind, reset it be only 5 seconds.
             //This will drop missed frames but avoid the game freezing as the Window tries
             //to catch after a period of inactivity
-            if (System.currentTimeMillis() - this.systemTime > TimeUnit.SECONDS.toMillis(5))
-                this.systemTime = System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(5)
+            if (System.currentTimeMillis() - this.legacyAnimationFrameTime > TimeUnit.SECONDS.toMillis(5))
+                this.legacyAnimationFrameTime = System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(5)
 
+            @Suppress("DEPRECATION")
+            val animationFPS = animationFPS
             val target = System.currentTimeMillis() + 1000 / animationFPS
-            val animationFrames = (target - this.systemTime).toInt() * animationFPS / 1000
+            val animationFrames = (target - this.legacyAnimationFrameTime).toInt() * animationFPS / 1000
             // If the window is sufficiently complex, it's possible for the average `animationFrame` to take so long
             // we'll start falling behind with no way to ever catch up. And the amount of frames we're behind will
             // quickly grow to the point where we'll be spending five seconds in `animationFrame` before we can get a
@@ -81,13 +127,18 @@ class Window @JvmOverloads constructor(
             // To prevent that, we limit the `animationFrame` calls we make per real frame such that we'll still be able
             // to render approximately 30 real frames per second at the cost of animations slowing down.
             repeat(animationFrames.coerceAtMost((animationFPS / 30).coerceAtLeast(1))) {
+                @Suppress("DEPRECATION")
                 animationFrame()
-                this.systemTime += 1000 / animationFPS
+                this.legacyAnimationFrameTime += 1000 / animationFPS
+
+                if (version >= ElementaVersion.v8) {
+                    invalidateCachedConstraints()
+                }
             }
 
             hoveredFloatingComponent = null
             val (mouseX, mouseY) = getMousePosition()
-            for (component in floatingComponents.reversed()) {
+            for (component in allFloatingComponentsInReverseOrder()) {
                 if (component.isPointInside(mouseX, mouseY)) {
                     hoveredFloatingComponent = component
                     break
@@ -148,13 +199,16 @@ class Window @JvmOverloads constructor(
     fun drawFloatingComponents(matrixStack: UMatrixStack) {
         requireMainThread()
 
-        val it = floatingComponents.iterator()
+        val it = legacyFloatingComponents.iterator()
         while (it.hasNext()) {
             val component = it.next()
             if (ofOrNull(component) == null) {
                 it.remove()
                 continue
             }
+            component.drawCompat(matrixStack)
+        }
+        for (component in floatingComponents ?: emptyList()) {
             component.drawCompat(matrixStack)
         }
     }
@@ -167,7 +221,7 @@ class Window @JvmOverloads constructor(
         requireMainThread()
 
         val (mouseX, mouseY) = getMousePosition()
-        for (floatingComponent in floatingComponents.reversed()) {
+        for (floatingComponent in allFloatingComponentsInReverseOrder()) {
             if (floatingComponent.isPointInside(mouseX, mouseY)) {
                 floatingComponent.mouseScroll(delta)
                 return
@@ -188,6 +242,9 @@ class Window @JvmOverloads constructor(
         //  2 and over. See [ElementaVersion.V2] for more info.
         val (adjustedX, adjustedY) = pixelCoordinatesToPixelCenter(mouseX, mouseY)
 
+        prevDraggedMouseX = adjustedX.toFloat()
+        prevDraggedMouseY = adjustedY.toFloat()
+
         doMouseClick(adjustedX, adjustedY, button)
     }
 
@@ -200,7 +257,7 @@ class Window @JvmOverloads constructor(
             }
         }
 
-        for (floatingComponent in floatingComponents.reversed()) {
+        for (floatingComponent in allFloatingComponentsInReverseOrder()) {
             if (floatingComponent.isPointInside(mouseX.toFloat(), mouseY.toFloat())) {
                 floatingComponent.mouseClick(mouseX, mouseY, button)
                 dealWithFocusRequests()
@@ -235,6 +292,9 @@ class Window @JvmOverloads constructor(
 
         super.mouseRelease()
 
+        prevDraggedMouseX = null
+        prevDraggedMouseY = null
+
         currentMouseButton = -1
     }
 
@@ -256,16 +316,42 @@ class Window @JvmOverloads constructor(
         }
     }
 
-    override fun animationFrame() {
+    internal var prevDraggedMouseX: Float? = null
+    internal var prevDraggedMouseY: Float? = null
+
+    private fun dispatchMouseDragging() {
         if (currentMouseButton != -1) {
             val (mouseX, mouseY) = getMousePosition()
             if (version >= ElementaVersion.v2) {
-                dragMouse(mouseX, mouseY, currentMouseButton)
+                if (prevDraggedMouseX != mouseX && prevDraggedMouseY != mouseY) {
+                    prevDraggedMouseX = mouseX
+                    prevDraggedMouseY = mouseY
+                    dragMouse(mouseX, mouseY, currentMouseButton)
+                }
             } else {
-                @Suppress("DEPRECATION")
-                dragMouse(mouseX.toInt(), mouseY.toInt(), currentMouseButton)
+                if (prevDraggedMouseX != mouseX.toInt().toFloat() && prevDraggedMouseY != mouseY.toInt().toFloat()) {
+                    prevDraggedMouseX = mouseX.toInt().toFloat()
+                    prevDraggedMouseY = mouseY.toInt().toFloat()
+                    @Suppress("DEPRECATION")
+                    dragMouse(mouseX.toInt(), mouseY.toInt(), currentMouseButton)
+                }
             }
         }
+    }
+
+    @Deprecated("See [ElementaVersion.V8].")
+    override fun animationFrame() {
+        if (version >= ElementaVersion.v8) {
+            // In v8, dragging and focus is handled before the UpdateFunc calls, we only need to call super to support
+            // components or effects which may still use animationFrame.
+            if (Flags.RequiresAnimationFrame in combinedFlags) {
+                @Suppress("DEPRECATION")
+                super.animationFrame()
+            }
+            return
+        }
+
+        dispatchMouseDragging()
 
         if (componentRequestingFocus != null && componentRequestingFocus != focusedComponent) {
             if (focusedComponent != null)
@@ -276,7 +362,17 @@ class Window @JvmOverloads constructor(
         }
         componentRequestingFocus = null
 
+        @Suppress("DEPRECATION")
         super.animationFrame()
+    }
+
+    // Note: Constraints are cached this way only with ElementaVersion.V8 and above,
+    //       prior version require calling `animationFrame` which may have additional side-effects.
+    fun invalidateCachedConstraints() {
+        for (constraint in cachedConstraints) {
+            constraint.recalculate = true
+        }
+        cachedConstraints.clear()
     }
 
     override fun getLeft(): Float {
@@ -324,29 +420,36 @@ class Window @JvmOverloads constructor(
      * Floating API
      */
 
+    private fun allFloatingComponentsInReverseOrder(): Sequence<UIComponent> =
+        (floatingComponents ?: emptyList()).asReversed().asSequence() +
+                // Note: needs to be copied to guard against CME and for backwards compatibility
+                legacyFloatingComponents.reversed()
+
+    @Deprecated("Internal API.", replaceWith = ReplaceWith("component.setFloating(true)"))
     fun addFloatingComponent(component: UIComponent) {
         if (isInitialized) {
             requireMainThread()
         }
 
-        if (floatingComponents.contains(component)) return
+        if (legacyFloatingComponents.contains(component)) return
 
-        floatingComponents.add(component)
+        legacyFloatingComponents.add(component)
     }
 
+    @Deprecated("Internal API.", replaceWith = ReplaceWith("component.setFloating(false)"))
     fun removeFloatingComponent(component: UIComponent) {
         if (isInitialized) {
             requireMainThread()
         }
 
-        floatingComponents.remove(component)
+        legacyFloatingComponents.remove(component)
     }
 
     /**
      * Overridden to including floating components.
      */
     override fun hitTest(x: Float, y: Float): UIComponent {
-        for (component in floatingComponents.reversed()) {
+        for (component in allFloatingComponentsInReverseOrder()) {
             if (component.isPointInside(x, y)) {
                 return component.hitTest(x, y)
             }
@@ -383,6 +486,10 @@ class Window @JvmOverloads constructor(
         focusedComponent?.loseFocus()
         focusedComponent = null
     }
+
+    @Suppress("DEPRECATION")
+    internal val animationFPSOr1000: Int
+        get() = if (version >= ElementaVersion.v8) 1000 else animationFPS
 
     companion object {
         private val renderOperations = ConcurrentLinkedQueue<() -> Unit>()
