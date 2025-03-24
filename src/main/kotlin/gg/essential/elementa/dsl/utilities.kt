@@ -45,11 +45,13 @@ operator fun Color.component2() = green
 operator fun Color.component3() = blue
 operator fun Color.component4() = alpha
 
+// To avoid conflicts when using mojmap we only enable one mc-stub method here
+
 // Fabric
-@Deprecated("Direct Minecraft dependency", level = DeprecationLevel.HIDDEN)
-@Suppress("DEPRECATION")
-fun net.minecraft.class_2561.width(textScale: Float = 1f, fontProvider: FontProvider = DefaultFonts.VANILLA_FONT_RENDERER) =
-    gg.essential.universal.wrappers.message.UTextComponent.from(this)!!.text.width(textScale, fontProvider)
+//@Deprecated("Direct Minecraft dependency", level = DeprecationLevel.HIDDEN)
+//@Suppress("DEPRECATION")
+//fun net.minecraft.class_2561.width(textScale: Float = 1f, fontProvider: FontProvider = DefaultFonts.VANILLA_FONT_RENDERER) =
+//    gg.essential.universal.wrappers.message.UTextComponent.from(this)!!.text.width(textScale, fontProvider)
 // Forge 1.8
 //@Deprecated("Direct Minecraft dependency", level = DeprecationLevel.HIDDEN)
 //@Suppress("DEPRECATION")
