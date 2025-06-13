@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "gg.essential"
-version = "DIAMOND-11"
+version = "DIAMOND-12"
 
 kotlin.jvmToolchain {
     (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(8))

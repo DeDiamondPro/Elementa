@@ -52,12 +52,12 @@ operator fun Color.component4() = alpha
 //@Suppress("DEPRECATION")
 //fun net.minecraft.class_2561.width(textScale: Float = 1f, fontProvider: FontProvider = DefaultFonts.VANILLA_FONT_RENDERER) =
 //    gg.essential.universal.wrappers.message.UTextComponent.from(this)!!.text.width(textScale, fontProvider)
-// Forge 1.8
+//// Forge 1.8
 //@Deprecated("Direct Minecraft dependency", level = DeprecationLevel.HIDDEN)
 //@Suppress("DEPRECATION")
 //fun net.minecraft.util.IChatComponent.width(textScale: Float = 1f, fontProvider: FontProvider = DefaultFonts.VANILLA_FONT_RENDERER) =
 //    gg.essential.universal.wrappers.message.UTextComponent.from(this)!!.text.width(textScale, fontProvider)
-// Forge 1.12-1.16
+//// Forge 1.12-1.16
 //@Deprecated("Direct Minecraft dependency", level = DeprecationLevel.HIDDEN)
 //@Suppress("DEPRECATION")
 //fun net.minecraft.util.text.ITextComponent.width(textScale: Float = 1f, fontProvider: FontProvider = DefaultFonts.VANILLA_FONT_RENDERER) =

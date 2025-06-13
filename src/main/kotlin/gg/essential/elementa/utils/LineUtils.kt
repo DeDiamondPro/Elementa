@@ -1,5 +1,6 @@
 package gg.essential.elementa.utils
 
+import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.components.UIPoint
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
@@ -12,7 +13,11 @@ import kotlin.math.sqrt
 
 object LineUtils {
     private val PIPELINE = URenderPipeline.builderWithDefaultShader("elementa:line_strip", UGraphics.DrawMode.TRIANGLE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR).apply {
+        @Suppress("DEPRECATION")
         blendState = BlendState.NORMAL
+    }.build()
+    private val PIPELINE2 = URenderPipeline.builderWithDefaultShader("elementa:line_strip", UGraphics.DrawMode.TRIANGLE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR).apply {
+        blendState = BlendState.ALPHA
     }.build()
 
     @Deprecated(UMatrixStack.Compat.DEPRECATED, ReplaceWith("drawLine(UMatrixStack(), x1, y1, x2, y2, color, width)"))
@@ -27,10 +32,10 @@ object LineUtils {
 
     @JvmStatic
     fun drawLineStrip(matrixStack: UMatrixStack, points: List<Pair<Number, Number>>, color: Color, width: Float) {
-        if (URenderPipeline.isRequired) {
+        if (URenderPipeline.isRequired || ElementaVersion.atLeastV9Active) {
             val bufferBuilder = UBufferBuilder.create(UGraphics.DrawMode.TRIANGLE_STRIP, UGraphics.CommonVertexFormats.POSITION_COLOR)
             drawLineStrip(bufferBuilder, matrixStack, points, color, width)
-            bufferBuilder.build()?.drawAndClose(PIPELINE)
+            bufferBuilder.build()?.drawAndClose(if (ElementaVersion.atLeastV10Active) PIPELINE2 else PIPELINE)
         } else {
             @Suppress("DEPRECATION")
             UGraphics.enableBlend()

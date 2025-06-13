@@ -1,5 +1,6 @@
 package gg.essential.elementa.utils
 
+import gg.essential.elementa.ElementaVersion
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
 import gg.essential.universal.render.URenderPipeline
@@ -46,10 +47,10 @@ internal fun drawTexture(
         vertexConsumer.pos(matrixStack, x, y, 0.0).tex(0.0, 0.0).color(red, green, blue, alpha).endVertex()
     }
 
-    if (URenderPipeline.isRequired) {
+    if (URenderPipeline.isRequired || ElementaVersion.atLeastV9Active) {
         val bufferBuilder = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
         drawTexturedQuad(bufferBuilder)
-        bufferBuilder.build()?.drawAndClose(TEXTURED_QUAD_PIPELINE) {
+        bufferBuilder.build()?.drawAndClose(if (ElementaVersion.atLeastV10Active) TEXTURED_QUAD_PIPELINE2 else TEXTURED_QUAD_PIPELINE) {
             texture(0, glId)
         }
     } else {
@@ -72,7 +73,16 @@ private val TEXTURED_QUAD_PIPELINE = URenderPipeline.builderWithDefaultShader(
     UGraphics.DrawMode.QUADS,
     UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR,
 ).apply {
+    @Suppress("DEPRECATION")
     blendState = BlendState.NORMAL
+}.build()
+
+private val TEXTURED_QUAD_PIPELINE2 = URenderPipeline.builderWithDefaultShader(
+    "elementa:textured_quad",
+    UGraphics.DrawMode.QUADS,
+    UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR,
+).apply {
+    blendState = BlendState.ALPHA
 }.build()
 
 fun decodeBlurHash(blurHash: String?, width: Int, height: Int, punch: Float = 1f): BufferedImage? {

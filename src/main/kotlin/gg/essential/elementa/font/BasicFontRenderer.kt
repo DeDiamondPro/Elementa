@@ -1,5 +1,6 @@
 package gg.essential.elementa.font
 
+import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.UIComponent
 import gg.essential.elementa.constraints.ConstraintType
 import gg.essential.elementa.constraints.resolution.ConstraintVisitor
@@ -148,10 +149,10 @@ class BasicFontRenderer(
         y: Float,
         originalPointSize: Float
     ) {
-        if (URenderPipeline.isRequired) {
+        if (URenderPipeline.isRequired || ElementaVersion.atLeastV9Active) {
             val bufferBuilder = UBufferBuilder.create(UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_TEXTURE_COLOR)
             drawStringNow(bufferBuilder, matrixStack, string, color, x, y, originalPointSize)
-            bufferBuilder.build()?.drawAndClose(PIPELINE) {
+            bufferBuilder.build()?.drawAndClose(if (ElementaVersion.atLeastV10Active) PIPELINE2 else PIPELINE) {
                 texture(0, regularFont.getTexture().dynamicGlId)
             }
         } else {
@@ -274,7 +275,11 @@ class BasicFontRenderer(
 
     private companion object {
         private val PIPELINE = URenderPipeline.builderWithDefaultShader("elementa:basic_font", UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR).apply {
+            @Suppress("DEPRECATION")
             blendState = BlendState.NORMAL.copy(srcAlpha = BlendState.Param.ONE, dstAlpha = BlendState.Param.ZERO)
+        }.build()
+        private val PIPELINE2 = URenderPipeline.builderWithDefaultShader("elementa:basic_font", UGraphics.DrawMode.QUADS, UGraphics.CommonVertexFormats.POSITION_COLOR).apply {
+            blendState = BlendState.ALPHA
         }.build()
     }
 }
