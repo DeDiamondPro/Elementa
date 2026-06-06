@@ -2,7 +2,6 @@ package gg.essential.elementa.components
 
 import gg.essential.elementa.ElementaVersion
 import gg.essential.elementa.UIComponent
-import gg.essential.elementa.components.UpdateFunc
 import gg.essential.elementa.constraints.*
 import gg.essential.elementa.constraints.animation.Animations
 import gg.essential.elementa.constraints.resolution.ConstraintVisitor
@@ -148,6 +147,11 @@ class ScrollComponent constructor(
             val scrollDirection = if (!UKeyboard.isShiftKeyDown()) primaryScrollDirection else secondaryScrollDirection
             if (scrollDirection != null) {
                 if (onScroll(it.delta.toFloat(), isHorizontal = scrollDirection == Direction.Horizontal) || !passthroughScroll) {
+                    it.stopPropagation()
+                }
+            }
+            if(horizontalScrollEnabled) {
+                if (onScroll(it.scrollX.toFloat(), isHorizontal = true) || !passthroughScroll) {
                     it.stopPropagation()
                 }
             }
@@ -425,6 +429,7 @@ class ScrollComponent constructor(
      * @return whether the offset changed
      */
     private fun onScroll(delta: Float, isHorizontal: Boolean): Boolean {
+        if (delta == 0f) return false
         var changed = false
         val offset = if (isHorizontal) ::horizontalOffset else ::verticalOffset
         val range = calculateOffsetRange(isHorizontal)

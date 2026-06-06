@@ -15,6 +15,7 @@ import java.awt.Color
  * [T] is what this constraint deals with, for example Float for WidthConstraint
  * or Color for ColorConstraint
  */
+@JvmDefaultWithCompatibility
 interface SuperConstraint<T> {
     var cachedValue: T
     var recalculate: Boolean
@@ -54,6 +55,7 @@ interface SuperConstraint<T> {
     fun visitImpl(visitor: ConstraintVisitor, type: ConstraintType)
 }
 
+@JvmDefaultWithCompatibility
 interface GeneralConstraint : PositionConstraint, SizeConstraint {
     fun getXValue(component: UIComponent): Float
 
@@ -70,8 +72,10 @@ interface GeneralConstraint : PositionConstraint, SizeConstraint {
     override fun getRadiusImpl(component: UIComponent) = getXValue(component)
 }
 
+@JvmDefaultWithCompatibility
 interface PositionConstraint : XConstraint, YConstraint
 
+@JvmDefaultWithCompatibility
 interface XConstraint : SuperConstraint<Float> {
     fun getXPositionImpl(component: UIComponent): Float
 
@@ -79,6 +83,7 @@ interface XConstraint : SuperConstraint<Float> {
         getCachedDebuggable(component, ConstraintType.X) { getXPositionImpl(it).roundToRealPixels() }
 }
 
+@JvmDefaultWithCompatibility
 interface YConstraint : SuperConstraint<Float> {
     fun getYPositionImpl(component: UIComponent): Float
 
@@ -86,8 +91,10 @@ interface YConstraint : SuperConstraint<Float> {
         getCachedDebuggable(component, ConstraintType.Y) { getYPositionImpl(it).roundToRealPixels() }
 }
 
+@JvmDefaultWithCompatibility
 interface SizeConstraint : WidthConstraint, HeightConstraint, RadiusConstraint
 
+@JvmDefaultWithCompatibility
 interface RadiusConstraint : SuperConstraint<Float> {
     fun getRadiusImpl(component: UIComponent): Float
 
@@ -95,6 +102,7 @@ interface RadiusConstraint : SuperConstraint<Float> {
         getCachedDebuggable(component, ConstraintType.RADIUS) { getRadiusImpl(it).roundToRealPixels() }
 }
 
+@JvmDefaultWithCompatibility
 interface WidthConstraint : SuperConstraint<Float> {
     fun getWidthImpl(component: UIComponent): Float
 
@@ -102,6 +110,7 @@ interface WidthConstraint : SuperConstraint<Float> {
         getCachedDebuggable(component, ConstraintType.WIDTH) { getWidthImpl(it).roundToRealPixels() }
 }
 
+@JvmDefaultWithCompatibility
 interface HeightConstraint : SuperConstraint<Float> {
     fun getHeightImpl(component: UIComponent): Float
 
@@ -109,10 +118,19 @@ interface HeightConstraint : SuperConstraint<Float> {
         getCachedDebuggable(component, ConstraintType.HEIGHT) { getHeightImpl(it).roundToRealPixels() }
 
     fun getTextScale(component: UIComponent): Float {
-        return getHeight(component)
+        return getCachedDebuggable(component, ConstraintType.TEXT_SCALE) { component ->
+            // We're explicitly skipping rounding for textScale 1 (which is the default) as otherwise, when using a
+            // fractional guiScale, it will be rounded to a non-1 value, and consequently all Elementa text will appear
+            // slightly bigger (or smaller) than vanilla text.
+            // This will result in some aliasing (rounding is technically the correct thing to do if we want to avoid
+            // that), but that's something to expect when using a fractional gui scale mod, and would be up to that mod
+            // to fix.
+            getHeightImpl(component).let { if (it == 1f) 1f else it.roundToRealPixels() }
+        }
     }
 }
 
+@JvmDefaultWithCompatibility
 interface ColorConstraint : SuperConstraint<Color> {
     fun getColorImpl(component: UIComponent): Color
 
@@ -120,6 +138,7 @@ interface ColorConstraint : SuperConstraint<Color> {
         getCached(component) { getColorImpl(it) }
 }
 
+@JvmDefaultWithCompatibility
 interface MasterConstraint : PositionConstraint, SizeConstraint
 
 private inline fun SuperConstraint<Float>.getCachedDebuggable(component: UIComponent, type: ConstraintType, getImpl: (UIComponent) -> Float): Float {
