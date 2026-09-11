@@ -7,11 +7,16 @@ import gg.essential.elementa.constraints.resolution.ConstraintResolutionGui
 import gg.essential.elementa.constraints.resolution.ConstraintResolver
 import gg.essential.elementa.constraints.resolution.ConstraintResolverV2
 import gg.essential.elementa.effects.ScissorEffect
+import gg.essential.elementa.renderer.impl.ElementaExtractorImpl
+import gg.essential.elementa.renderer.ElementaRenderState
+import gg.essential.elementa.renderer.ElementaRenderer
+import gg.essential.elementa.renderer.impl.Rect
 import gg.essential.elementa.utils.elementaDev
 import gg.essential.elementa.utils.requireMainThread
 import gg.essential.universal.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 
 /**
  * "Root" component. All components MUST have a Window in their hierarchy in order to do any rendering
@@ -43,6 +48,9 @@ class Window @JvmOverloads constructor(
         private set
     private var componentRequestingFocus: UIComponent? = null
 
+    internal var usesLegacyDraw = true // as opposed to `extract`-based rendering
+        private set
+
     var hasErrored = false
         private set
 
@@ -57,10 +65,59 @@ class Window @JvmOverloads constructor(
         cachedWindow = this
     }
 
+    override fun afterInitialization() {
+        super.afterInitialization()
+    }
+
+    /**
+     * Prepares the next frame, advancing animations, recomputing positions, etc..
+     *
+     * The next frame can then be extracted by calling [extractRenderState].
+     */
+    fun prepareFrame() {
+        usesLegacyDraw = false
+        doPrepareFrame()
+    }
+
+    /**
+     * Extracts an instance of [ElementaRenderState] representing the current frame.
+     * Call [prepareFrame] beforehand to advance the current frame.
+     *
+     * The [ElementaRenderState] may then be rendered using [ElementaRenderer].
+     */
+    fun extractRenderState(): ElementaRenderState {
+        requireMainThread()
+
+        val guiScale = UResolution.scaleFactor.toFloat()
+        val screenSize = Rect(0, 0, (getWidth() * guiScale).roundToInt(), (getHeight() * guiScale).roundToInt())
+        return withDrawErrorHandling {
+            val extractor = ElementaExtractorImpl(screenSize, guiScale)
+            extract(extractor)
+            extractor.finish()
+        } ?: ElementaExtractorImpl(screenSize, guiScale).finish()
+    }
+
+    @Deprecated(
+        "`draw`-style rendering is deprecated. " +
+                "Call `prepareFrame` to prepare the next frame, " +
+                "followed by `extractRenderState` to extract it," +
+                "and then use `ElementaRenderer` to render it.",
+    )
     override fun draw(matrixStack: UMatrixStack) =
         version.enableFor { doDraw(matrixStack) }
 
     private fun doDraw(matrixStack: UMatrixStack) {
+        doPrepareFrame()
+
+        withDrawErrorHandling {
+            @Suppress("DEPRECATION")
+            beforeDraw(matrixStack)
+            @Suppress("DEPRECATION")
+            super.draw(matrixStack)
+        }
+    }
+
+    private fun doPrepareFrame() {
         if (hasErrored)
             return
 
@@ -85,7 +142,7 @@ class Window @JvmOverloads constructor(
 
         animationTimeNs += dtMs * 1_000_000
 
-        try {
+        withDrawErrorHandling {
 
             if (version >= ElementaVersion.v8) {
                 dispatchMouseDragging()
@@ -145,8 +202,13 @@ class Window @JvmOverloads constructor(
             }
 
             mouseMove(this)
-            beforeDraw(matrixStack)
-            super.draw(matrixStack)
+        }
+    }
+
+    private fun <T> withDrawErrorHandling(block: () -> T): T? {
+        if (hasErrored) return null
+        try {
+            return block()
         } catch (e: Throwable) {
             hasErrored = true
 
@@ -185,9 +247,13 @@ class Window @JvmOverloads constructor(
                     null
                 }
             }
+
+            return null
         }
     }
 
+    @Deprecated("`draw`-style rendering is deprecated.")
+    @Suppress("DEPRECATION")
     internal fun drawEmbedded(matrixStack: UMatrixStack) {
         super.draw(matrixStack)
     }

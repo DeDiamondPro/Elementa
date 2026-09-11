@@ -192,7 +192,30 @@ class ScrollComponent constructor(
     private var lastActualWidth = 0f
     private var lastActualHeight = 0f
 
+    init {
+        addUpdateFunc(object : UpdateFunc {
+            override fun invoke(dt: Float, dtMs: Int) {
+                if (Window.of(this@ScrollComponent).usesLegacyDraw) {
+                    // handled by `draw` override below
+                    removeUpdateFunc(this)
+                    return
+                }
+                doUpdate()
+            }
+        })
+    }
+
+    @Deprecated(
+        "`draw`-style rendering is deprecated. Override `extractComponent` instead. Call `extract` to extract this component, its effects, and its children.",
+        replaceWith = ReplaceWith("extract(extractor)")
+    )
     override fun draw(matrixStack: UMatrixStack) {
+        doUpdate()
+        @Suppress("DEPRECATION")
+        super.draw(matrixStack)
+    }
+
+    private fun doUpdate() {
         val width = getWidth()
         val height = getHeight()
         if (width != lastWidth || height != lastHeight) {
@@ -224,16 +247,14 @@ class ScrollComponent constructor(
                 setYAnimation(Animations.IN_SIN, 0.1f, verticalOffset.pixels())
             }
             // Run our scroll adjust event, normally updating [scrollBarGrip]
-            var percent = (innerPadding - horizontalOffset) / horizontalRange.width()
+            var percent = if (horizontalRange.width() == 0f) 0f else (innerPadding - horizontalOffset) / horizontalRange.width()
             var percentageOfParent = width / actualWidth
             horizontalScrollAdjustEvents.forEach { it(percent, percentageOfParent) }
 
-            percent = (innerPadding - verticalOffset) / verticalRange.width()
+            percent = if (verticalRange.width() == 0f) 0f else (innerPadding - verticalOffset) / verticalRange.width()
             percentageOfParent = height / actualHeight
             verticalScrollAdjustEvents.forEach { it(percent, percentageOfParent) }
         }
-
-        super.draw(matrixStack)
     }
 
     /**
